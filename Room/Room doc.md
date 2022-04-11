@@ -19,13 +19,19 @@
 #### Major problems with SQLite usage are
 
 - **There is no compile-time verification of raw SQL queries. For example, if you write a SQL query with a wrong column name that does not exist in real database then it will give exception during run time and you can not capture this issue during compile time.**
+
 - **As your schema changes, you need to update the affected SQL queries manually. This process can be time-consuming and error-prone.**
+
 - **You need to use lots of boilerplate code to convert between SQL queries and Java data objects (POJO).**
   
   #### Room vs SQLite
+
 - **In the case of SQLite, There is `no compile-time verification` of raw SQLite queries. But in Room, there is SQL `validation at compile time`.**
+
 - **You need to use lots of `boilerplate` code to convert between SQL queries and Java data objects. But, Room maps our database objects to Java Object without boilerplate code.**
+
 - **As your schema changes, you need to update the affected SQL queries manually. Room solves this problem.**
+
 - **Room is built to work with `LiveData` and `RxJava` for data observation, while SQLite does not.**
 
 #### [Setup](https://developer.android.com/training/data-storage/room#setup)
@@ -47,8 +53,6 @@
 - **Data access objects DAOs** that provide methods that your app can use to query, update, insert, and delete data in the database.
 
 ![](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/Primary%20components.png)
-
-
 
 ### Sample implementation
 
@@ -112,15 +116,11 @@ val userDao = db.userDao()
 val users: List<User> = userDao.getAll()
 ```
 
-
-
 # Section 2
 
 #### Defining data using Room entities
 
 **When you use the Room persistence library to store your app's data, you define entities to represent the objects that you want to store. Each entity corresponds to a table in the associated Room database, and each instance of an entity represents a row of data in the corresponding table.**
-
-
 
 **`@Entity` — every model class with this annotation will have a mapping table in DB.**
 
@@ -136,14 +136,10 @@ data class User(
 
 **Note:** By default, Room uses the class name as the database table name. If you want the table to have a different name, set the `tableName` property of the `@Entity` annotation.
 
-
-
 - **`foreignKeys` — names of foreign keys**
 - **`indices` — list of indicates on the table**
 - **`primaryKeys` — names of entity primary keys**
 - **`tableName`**
-  
-  
 
 **`@PrimaryKey` — this annotation points the primary key of the entity.**
 
@@ -163,8 +159,6 @@ data class User(
 )
 ```
 
-
-
 **`@ColumnInfo` — allows specifying custom information about column.**
 
 **Note:** Room uses the field names as column names in the database by default. If you want a column to have a different name, add the `@ColumnInfo` annotation to the field and set the `name`property.
@@ -177,8 +171,6 @@ data class User (
     @ColumnInfo(name = "last_name") val lastName: String?
 )
 ```
-
-
 
 **`@Ignore` — field will not be persisted by Room.**
 
@@ -206,8 +198,6 @@ data class RemoteUser(
 ) : User()
 ```
 
-
-
 **`@Embeded` — nested fields can be referenced directly in the SQL queries.**
 
 ```kotlin
@@ -224,14 +214,11 @@ data class Address(
     @Embedded
     val coordinates: Coordinates  
 )
-
 ```
 
 **Its database table will have 3 columns: `id, street, latitude, longitude`**
 
 **So if you have a query that returns `id, street, latitude, longitude`, Room will properly construct an `Address` class.**
-
-
 
 **`@Fts3,@Fts4`**
 
@@ -251,8 +238,6 @@ data class User(
 ```
 
 **Note:** FTS-enabled tables always use a primary key of type `INTEGER` and with the column name "rowid". If your FTS-table-backed entity defines a primary key, it **must** use that type and column name.
-
-
 
 **`@Index`**
 
