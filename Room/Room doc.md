@@ -266,3 +266,113 @@ data class User(
     @Ignore var picture: Bitmap?
 )
 ```
+
+# Section 3
+
+#### Accessing data using Room DAOs - Part 1
+
+**When you use the Room persistence library to store your app's data, you interact with the stored data by defining *data access objects*, or DAOs. Each DAO includes methods that offer abstract access to your app's database. At compile time, Room automatically generates implementations of the DAOs that you define.**
+
+
+
+**You can define each DAO as either an interface or an abstract class. For basic use cases, you should usually use an interface. In either case, you must always annotate your DAOs with `@Dao`. DAOs don't have properties, but they do define one or more methods for interacting with the data in your app's database.**
+
+```kotlin
+@Dao
+interface UserDao {
+    @Insert
+    fun insertAll(vararg users: User)
+
+    @Delete
+    fun delete(user: User)
+
+    @Query("SELECT * FROM user")
+    fun getAll(): List<User>
+}
+```
+
+
+
+**There are two types of DAO methods that define database interactions:**
+
+- **`Convenience methods` that let you insert, update, and delete rows in your database without writing any SQL code.**
+- **`Query methods` that let you write your own SQL query to interact with the database.**
+
+#### Convenience methods
+
+**Room provides convenience annotations for defining methods that perform simple `inserts`, `updates`, and `deletes` without requiring you to write a SQL statement.**
+
+**If you need to define more complex inserts, updates, or deletes, or if you need to query the data in the database, use a query method instead.**
+
+#### `@Insert`
+
+**The `@Insert` annotation allows you to define methods that insert their parameters into the appropriate table in the database.**
+
+```kotlin
+@Dao
+interface UserDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertUsers(vararg users: User)
+
+    @Insert
+    fun insertBothUsers(user1: User, user2: User)
+
+    @Insert
+    fun insertUsersAndFriends(user: User, friends: List<User>)
+}
+```
+
+
+
+**If the `@Insert` method receives a single parameter, it can return a `long` value, which is the new `rowId` for the inserted item. If the parameter is an array or a collection, then the method should return an array or a collection of `long` values instead, with each value as the `rowId` for one of the inserted items.**
+
+- **When an `@Insert` method is called, Room inserts each passed entity instance into the corresponding database table.**
+
+- **If the `@Insert` method receives a single parameter, it can return a `long` value, which is the new `rowId` for the inserted item. If the parameter is an array or a collection, then the method should return an array or a collection of `long` values instead, with each value as the `rowId` for one of the inserted items.**
+
+#### `@Update`
+
+**The `@Update` annotation allows you to define methods that update specific rows in a database table. Similarly to `@Insert` methods, `@Update` methods accept data entity instances as parameters.**
+
+```kotlin
+@Dao
+interface UserDao {
+    @Update
+    fun updateUsers(vararg users: User)
+}
+```
+
+- **Room uses the primary key to match passed entity instances to rows in the database. If there is no row with the same primary key, Room makes no changes.**
+
+- **An `@Update` method can optionally return an `int` value indicating the number of rows that were updated successfully.**
+
+#### `@Delete`
+
+**The `@Delete` annotation allows you to define methods that delete specific rows from a database table. Similarly to `@Insert` methods, `@Delete` methods accept data entity instances as parameters.**
+
+```kotlin
+@Dao
+interface UserDao {
+    @Delete
+    fun deleteUsers(vararg users: User)
+}
+```
+
+- **Room uses the primary key  to match passed entity instances to rows in the database. If there is no row with the same primary key, Room makes no changes.**
+
+- **A `@Delete` method can optionally return an `int` value indicating the number of rows that were deleted successfully.**
+
+#### Query methods
+
+- **The `@Query` annotation allows you to write SQL statements and expose them as DAO methods. Use these query methods to query data from your app's database, or when you need to perform more complex inserts, updates, and deletes.**
+
+- **Room validates SQL queries at compile time. This means that if there's a problem with your query, a compilation error occurs instead of a runtime failure.**
+
+#### Simple queries
+
+**The following code defines a method that uses a simple `SELECT` query to return all of the `User` objects in the database:**
+
+```kotlin
+@Query("SELECT * FROM user")
+fun loadAllUsers(): Array<User>
+```
