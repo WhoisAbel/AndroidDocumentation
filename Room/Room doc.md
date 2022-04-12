@@ -273,8 +273,6 @@ data class User(
 
 **When you use the Room persistence library to store your app's data, you interact with the stored data by defining *data access objects*, or DAOs. Each DAO includes methods that offer abstract access to your app's database. At compile time, Room automatically generates implementations of the DAOs that you define.**
 
-
-
 **You can define each DAO as either an interface or an abstract class. For basic use cases, you should usually use an interface. In either case, you must always annotate your DAOs with `@Dao`. DAOs don't have properties, but they do define one or more methods for interacting with the data in your app's database.**
 
 ```kotlin
@@ -290,8 +288,6 @@ interface UserDao {
     fun getAll(): List<User>
 }
 ```
-
-
 
 **There are two types of DAO methods that define database interactions:**
 
@@ -321,8 +317,6 @@ interface UserDao {
     fun insertUsersAndFriends(user: User, friends: List<User>)
 }
 ```
-
-
 
 **If the `@Insert` method receives a single parameter, it can return a `long` value, which is the new `rowId` for the inserted item. If the parameter is an array or a collection, then the method should return an array or a collection of `long` values instead, with each value as the `rowId` for one of the inserted items.**
 
@@ -375,4 +369,153 @@ interface UserDao {
 ```kotlin
 @Query("SELECT * FROM user")
 fun loadAllUsers(): Array<User>
+```
+
+# Section 4
+
+- **Most of the time, you only need to return a subset of the columns from the table that you are querying. For example, your UI might display just the first and last name for a user instead of every detail about that user. In order to save resources and streamline your query's execution, you should only query the fields that you need. Room allows you to return a simple object from any of your queries as long as you can map the set of result columns onto the returned object.**
+
+```kotlin
+data class NameTuple(
+    @ColumnInfo(name = "first_name") val firstName: String?,
+    @ColumnInfo(name = "last_name") val lastName: String?
+)
+```
+
+```kotlin
+@Query("SELECT first_name, last_name FROM user")
+fun loadFullName(): List<NameTuple>
+```
+
+
+
+- **Most of the time, your DAO methods need to accept parameters so that they can perform filtering operations. Room supports using method parameters as bind parameters in your queries.**
+
+```kotlin
+@Query("SELECT * FROM user WHERE age > :minAge")
+fun loadAllUsersOlderThan(minAge: Int): Array<User>
+```
+
+
+
+- **You can also pass multiple parameters or reference the same parameter multiple times in a query.**
+
+```kotlin
+@Query("SELECT * FROM user WHERE age BETWEEN :minAge AND :maxAge")
+fun loadAllUsersBetweenAges(minAge: Int, maxAge: Int): Array<User>
+
+@Query("SELECT * FROM user WHERE first_name LIKE :search " +
+       "OR last_name LIKE :search")
+fun findUserWithName(search: String): List<User>
+```
+
+
+
+- **Some of your DAO methods might require you to pass in a variable number of parameters that is not known until runtime. Room understands when a parameter represents a collection and automatically expands it at runtime based on the number of parameters provided.**
+
+```kotlin
+@Query("SELECT * FROM user WHERE region IN (:regions)")
+fun loadUsersFromRegions(regions: List<String>): List<User>
+```
+
+
+
+#### Query multiple tables
+
+- **Some of your queries might require access to multiple tables to calculate the result. You can use `JOIN` clauses in your SQL queries to reference more than one table.**
+
+```kotlin
+@Query(
+    "SELECT * FROM book " +
+    "INNER JOIN loan ON loan.book_id = book.id " +
+    "INNER JOIN user ON user.id = loan.user_id " +
+    "WHERE user.name LIKE :userName"
+)
+fun findBooksBorrowedByNameSync(userName: String): List<Book>
+```
+
+
+
+- **You can also define simple objects to return a subset of columns from multiple joined tables as discussed in Return a subset of a table's columns.**
+
+```kotlin
+interface UserBookDao {
+    @Query(
+        "SELECT user.name AS userName, book.name AS bookName " +
+        "FROM user, book " +
+        "WHERE user.id = book.user_id"
+    )
+    fun loadUserAndBookNames(): LiveData<List<UserBook>>
+
+    // You can also define this class in a separate file.
+    data class UserBook(val userName: String?, val bookName: String?)
+}
+```
+
+
+
+#### Return a multimap
+
+**In Room 2.4 and higher, you can also query columns from multiple tables without defining an additional data class by writing query methods that return a multimap.Consider the example from the Query multiple tables  section. Instead of returning a list of instances of a custom data class that holds pairings of `User` and `Book` instances, you can return a mapping of `User` and `Book`directly from your query method:**
+
+```kotlin
+@Query(
+    "SELECT * FROM user" +
+    "JOIN book ON user.id = book.user_id"
+)
+fun loadUserAndBookNames(): Map<User, List<Book>>
+```
+
+
+
+**When your query method returns a multimap, you can write queries that use `GROUP BY` clauses, allowing you to take advantage of SQL's capabilities for advanced calculations and filtering. For example, you can modify your `loadUserAndBookNames()` method to only return users with three or more books checked out:**
+
+```kotlin
+@Query(
+    "SELECT * FROM user" +
+    "JOIN book ON user.id = book.user_id" +
+    "GROUP BY user.name WHERE COUNT(book.id) >= 3"
+)
+fun loadUserAndBookNames(): Map<User, List<Book>>
+```
+
+
+
+**If you don't need to map entire objects, you can also return mappings between specific columns in your query by setting the `keyColumn` and `valueColumn` attributes in a `@MapInfo` annotation on your query method:**
+
+```kotlin
+@MapInfo(keyColumn = "userName", valueColumn = "bookName")
+@Query(
+    "SELECT user.name AS username, book.name AS bookname FROM user" +
+    "JOIN book ON user.id = book.user_id"
+)
+fun loadUserAndBookNames(): Map<String, List<String>
+```
+
+#### 
+
+#### Direct cursor access
+
+**If your app's logic requires direct access to the return rows, you can write your DAO methods to return a `Cursor` object as shown in the following example:**
+
+```kotlin
+@Dao
+interface UserDao {
+    @Query("SELECT * FROM user WHERE age > :minAge LIMIT 5")
+    fun loadRawUsersOlderThan(minAge: Int): Cursor
+}
+```
+
+#### 
+
+#### Paginated queries with the Paging library
+
+**Room supports paginated queries through integration with the Paging library. In `Room 2.3.0-alpha01` and higher, DAOs can return `PagingSource` objects for use with Paging 3.**
+
+```kotlin
+@Dao
+interface UserDao {
+  @Query("SELECT * FROM users WHERE label LIKE :query")
+  fun pagingSource(query: String): PagingSource<Int, User>
+}
 ```
