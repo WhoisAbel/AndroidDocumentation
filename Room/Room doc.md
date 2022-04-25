@@ -52,7 +52,7 @@
 - **Data entities** that represent tables in your app's database.
 - **Data access objects DAOs** that provide methods that your app can use to query, update, insert, and delete data in the database.
 
-![](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/Primary%20components.png)
+![](../resources/Primary%20components.png)
 
 ### Sample implementation
 
@@ -503,7 +503,5 @@ interface UserDao {
   fun pagingSource(query: String): PagingSource<Int, User>
 }
 ```
-
-
 
 # Section 5
