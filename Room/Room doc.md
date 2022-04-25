@@ -387,16 +387,12 @@ data class NameTuple(
 fun loadFullName(): List<NameTuple>
 ```
 
-
-
 - **Most of the time, your DAO methods need to accept parameters so that they can perform filtering operations. Room supports using method parameters as bind parameters in your queries.**
 
 ```kotlin
 @Query("SELECT * FROM user WHERE age > :minAge")
 fun loadAllUsersOlderThan(minAge: Int): Array<User>
 ```
-
-
 
 - **You can also pass multiple parameters or reference the same parameter multiple times in a query.**
 
@@ -409,16 +405,12 @@ fun loadAllUsersBetweenAges(minAge: Int, maxAge: Int): Array<User>
 fun findUserWithName(search: String): List<User>
 ```
 
-
-
 - **Some of your DAO methods might require you to pass in a variable number of parameters that is not known until runtime. Room understands when a parameter represents a collection and automatically expands it at runtime based on the number of parameters provided.**
 
 ```kotlin
 @Query("SELECT * FROM user WHERE region IN (:regions)")
 fun loadUsersFromRegions(regions: List<String>): List<User>
 ```
-
-
 
 #### Query multiple tables
 
@@ -433,8 +425,6 @@ fun loadUsersFromRegions(regions: List<String>): List<User>
 )
 fun findBooksBorrowedByNameSync(userName: String): List<Book>
 ```
-
-
 
 - **You can also define simple objects to return a subset of columns from multiple joined tables as discussed in Return a subset of a table's columns.**
 
@@ -452,8 +442,6 @@ interface UserBookDao {
 }
 ```
 
-
-
 #### Return a multimap
 
 **In Room 2.4 and higher, you can also query columns from multiple tables without defining an additional data class by writing query methods that return a multimap.Consider the example from the Query multiple tables  section. Instead of returning a list of instances of a custom data class that holds pairings of `User` and `Book` instances, you can return a mapping of `User` and `Book`directly from your query method:**
@@ -466,8 +454,6 @@ interface UserBookDao {
 fun loadUserAndBookNames(): Map<User, List<Book>>
 ```
 
-
-
 **When your query method returns a multimap, you can write queries that use `GROUP BY` clauses, allowing you to take advantage of SQL's capabilities for advanced calculations and filtering. For example, you can modify your `loadUserAndBookNames()` method to only return users with three or more books checked out:**
 
 ```kotlin
@@ -478,8 +464,6 @@ fun loadUserAndBookNames(): Map<User, List<Book>>
 )
 fun loadUserAndBookNames(): Map<User, List<Book>>
 ```
-
-
 
 **If you don't need to map entire objects, you can also return mappings between specific columns in your query by setting the `keyColumn` and `valueColumn` attributes in a `@MapInfo` annotation on your query method:**
 
@@ -519,3 +503,7 @@ interface UserDao {
   fun pagingSource(query: String): PagingSource<Int, User>
 }
 ```
+
+
+
+# Section 5
