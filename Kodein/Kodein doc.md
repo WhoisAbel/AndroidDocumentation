@@ -65,6 +65,7 @@ val repositoryModule = Kodein.Module("repository") {
 class App : Application(), KodeinAware {
 
     override val kodein by Kodein.lazy {
+        import(androidXModule(this@App))
         import(repositoryModule)
     }
 }
@@ -115,6 +116,33 @@ inline fun <reified VM : ViewModel, T> T.kodeinViewModel(): Lazy<VM> where T : K
 
 ```
 
+###### Follow the Bellow steps and you don’t have to create ViewModelProvider.Factory for each of your ViewModel class again and again.
+
+**Bind your Desired ViewModel, and ViewModelFactory (This needs to be bind only once)**
+
+```kotlin
+bind<ViewModelProvider.Factory>() with singleton { ViewModelFactory(kodein.direct) }
+
+bindViewModel<SampleViewModel>() with provider {
+    SampleViewModel(instance())
+}
+```
+
+**And moving Forward for all your upcoming ViewModel all you need is to bind your ViewModel and you can inject them to your Activity/ Fragment.**
+
+```kotlin
+bindViewModel<OneViewModel>() with provider {
+    OneViewModel(instance())
+}
+bindViewModel<TwoViewModel>() with provider {
+    TwoViewModel(instance())
+}
+.
+.
+```
+
+
+
 **Last step is just create module that provide ViewModel instance and get instance inside Fragment, but first change constructor of the HomeViewModel and put there UserRepository:**
 
 ```kotlin
@@ -148,6 +176,7 @@ val viewModelModule = Kodein.Module("viewModel") {
 class App : Application(), KodeinAware {
 
     override val kodein by Kodein.lazy {
+        import(androidXModule(this@Application))
         import(repositoryModule)
         import(viewModelModule)
 
@@ -230,9 +259,14 @@ class AddFragment : Fragment(), KodeinAware {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
- 
+        initValue()
 
     }
 
 
+    private fun initValue() {
+
+        viewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
+
+    }
 ```
