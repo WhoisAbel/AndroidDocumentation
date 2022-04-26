@@ -116,7 +116,7 @@ inline fun <reified VM : ViewModel, T> T.kodeinViewModel(): Lazy<VM> where T : K
 
 ```
 
-###### Follow the Bellow steps and you don’t have to create ViewModelProvider.Factory for each of your ViewModel class again and again.
+**Follow the Bellow steps and you don’t have to create ViewModelProvider.Factory for each of your ViewModel class again and again.**
 
 **Bind your Desired ViewModel, and ViewModelFactory (This needs to be bind only once)**
 
