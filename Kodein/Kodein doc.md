@@ -211,12 +211,6 @@ class HomeFragment : Fragment(), KodeinAware {
 }
 ```
 
-**To sum up — in the App we can use:**
-
-- **by activityViewModel to provide instance per Activity**
-- **by fragmentViewModel to provide instance per Fragment**
-- **by activityScopedFragmentViewModel to provide instance inside fragment that lives as long as parent Activity is not destroyed**
-
 **if you don't want to create module, you can create instance directly in App.kt, for example:**
 
 ```kotlin
@@ -244,7 +238,7 @@ class UserApplication : Application(), KodeinAware {
 class AddFragment : Fragment(), KodeinAware {
 
     private lateinit var binding: FragmentAddBinding
-    private lateinit var viewModel: UserViewModel
+    private lateinit var viewModel: UserViewModel by kodeinViewModel()
     override val kodein by closestKodein()
 
     override fun onCreateView(
@@ -259,14 +253,7 @@ class AddFragment : Fragment(), KodeinAware {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initValue()
-
     }
 
 
-    private fun initValue() {
-
-        viewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
-
-    }
 ```
