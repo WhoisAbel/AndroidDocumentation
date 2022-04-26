@@ -27,7 +27,6 @@ data class UserModel(val name: String, val surname: String)
 ```
 
 ```kotlin
-
 interface UserRepository {
     fun getUserName(): UserModel
 }
@@ -51,8 +50,6 @@ class InMemoryUserRepository :
 > **singleton — it will return and keep single instance**
 > 
 > **provider — it will return every time new instance**
-
-
 
 ## RepositoryModule.kt
 
@@ -79,7 +76,7 @@ class App : Application(), KodeinAware {
 
 ```kotlin
 class ViewModelFactory(private val injector: DKodein) : ViewModelProvider.Factory {
-    
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return injector.instanceOrNull<ViewModel>(tag = modelClass.simpleName) as T?
             ?: modelClass.newInstance()
@@ -89,15 +86,11 @@ class ViewModelFactory(private val injector: DKodein) : ViewModelProvider.Factor
 
 **After that we have to prepare some extension functions. We need to write functions that we will use to bind ViewModel and to get instance inside Fragment or Activity. There will be functions for getting ViewModel instance per Activity, per Fragment and in Fragment but in Activity scope.**
 
-
-
 ## KodeinExt.kt
 
 ```kotlin
-import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.kodein.di.Kodein
@@ -105,30 +98,21 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.direct
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
-import org.kodein.di.generic.on
 
-inline fun <reified VM : ViewModel, T> T.activityViewModel(): Lazy<VM> where T : KodeinAware, T : FragmentActivity {
-    return viewModels(factoryProducer = { direct.instance() })
+
+inline fun <reified T : ViewModel> Kodein.Builder.bindViewModel(overrides: Boolean? = null): Kodein.Builder.TypeBinder<T> {
+    return bind<T>(T::class.java.simpleName, overrides)
 }
 
-inline fun <reified VM : ViewModel, T> T.activityScopedFragmentViewModel(): Lazy<VM> where T : KodeinAware, T : Fragment {
-    return viewModels(ownerProducer = { requireParentFragment() },
-        factoryProducer = { getFactoryInstance() })
+inline fun <reified VM : ViewModel, T> T.kodeinViewModel(): Lazy<VM> where T : KodeinAware, T : AppCompatActivity {
+    return lazy { ViewModelProvider(this, direct.instance())[VM::class.java] }
 }
 
-inline fun <reified VM : ViewModel, T> T.fragmentViewModel(): Lazy<VM> where T : KodeinAware, T : Fragment {
-    return viewModels(factoryProducer = { getFactoryInstance() })
+inline fun <reified VM : ViewModel, T> T.kodeinViewModel(): Lazy<VM> where T : KodeinAware, T : Fragment {
+    return lazy { ViewModelProvider(this, direct.instance())[VM::class.java] }
 }
 
-inline fun <reified VM : ViewModel> Kodein.Builder.bindViewModel(overrides: Boolean? = null): Kodein.Builder.TypeBinder<VM> {
-    return bind<VM>(VM::class.java.simpleName, overrides)
-}
 
-fun <T> T.getFactoryInstance(
-): ViewModelProvider.Factory where T : KodeinAware, T : Fragment {
-    val viewModeFactory: ViewModelProvider.Factory by kodein.on(activity).instance()
-    return viewModeFactory
-}
 ```
 
 **Last step is just create module that provide ViewModel instance and get instance inside Fragment, but first change constructor of the HomeViewModel and put there UserRepository:**
@@ -158,8 +142,6 @@ val viewModelModule = Kodein.Module("viewModel") {
 
 **bindViewModel will provide new instance of HomeViewModel and instance() method will inject here implementation of the UserRepository from RepositoryModule. Do not forget to add viewModelModule to kodein instance in the App class.**
 
-
-
 ## App.kt
 
 ```kotlin
@@ -168,8 +150,11 @@ class App : Application(), KodeinAware {
     override val kodein by Kodein.lazy {
         import(repositoryModule)
         import(viewModelModule)
+
+        bind<ViewModelProvider.Factory>() with singleton { ViewModelFactory(kodein.direct) }
+
     }
-    
+
 }
 ```
 
@@ -180,7 +165,7 @@ class HomeFragment : Fragment(), KodeinAware {
 
     override val kodein: Kodein by closestKodein()
 
-    private val homeViewModel: HomeViewModel by activityScopedFragmentViewModel()
+    private val homeViewModel: HomeViewModel by kodeinViewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -203,8 +188,6 @@ class HomeFragment : Fragment(), KodeinAware {
 - **by fragmentViewModel to provide instance per Fragment**
 - **by activityScopedFragmentViewModel to provide instance inside fragment that lives as long as parent Activity is not destroyed**
 
-
-
 **if you don't want to create module, you can create instance directly in App.kt, for example:**
 
 ```kotlin
@@ -215,8 +198,12 @@ class UserApplication : Application(), KodeinAware {
         bind() from singleton { UserDatabase(instance()) }
         bind() from singleton { UserLocalDataSource(instance()) }
         bind() from singleton { UserRepository(instance()) }
-        bind() from provider { UserViewModelFactory(instance()) }
-    }
+        bind<ViewModelProvider.Factory>() with singleton { ViewModelFactory(kodein.direct) }
+        bindViewModel<UserViewModel>() with provider {
+            UserViewModel(instance())
+        }
+
+ }
 
 
 }
@@ -231,8 +218,6 @@ class AddFragment : Fragment(), KodeinAware {
     private lateinit var viewModel: UserViewModel
     override val kodein by closestKodein()
 
-    private val factory: UserViewModelFactory by instance()
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -245,14 +230,9 @@ class AddFragment : Fragment(), KodeinAware {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initValue()
+ 
 
     }
 
 
-    private fun initValue() {
-
-        viewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
-
-    }
 ```
