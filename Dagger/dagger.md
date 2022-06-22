@@ -11,6 +11,23 @@
 2. **Hard dependency on <u>Steering</u> and <u>Engine</u> makes testing more difficult, because of <u>Car</u> use the real instance of <u>Engine</u> and <u>Steering</u>, thus preventing you to do Unit Testing because of its use real object of <u>Engine</u> and <u>Steering</u> we can not modify objects for testing in different cases.**
 3. **Not an easy task to maintain this type of code because no subclasses or alternative implementations can be easily used.**
 
+```kotlin
+class Car {
+
+    private val engine = Engine()
+    private val steering = Steering()
+
+    fun start() {
+        engine.start()
+    }
+}
+
+fun main(args: Array) {
+    val car = Car()
+    car.start()
+}
+```
+
 **We have two approaches to solve this issue. In both methods we are trying to make our code loosely coupled. For that, we are removing the dependency of the <u>Engine</u> and <u>Steering</u> class from the <u>Car</u> class. To achieve this, let’s look into the following methods:**
 
 
@@ -23,11 +40,43 @@
 
 
 
+```kotlin
+class Car(private val engine: Engine, private val steering: Steering) {
+    fun start() {
+        engine.start()
+    }
+}
+
+fun main(args: Array) {
+    val engine = Engine()
+    val car = Car(engine)
+    car.start()
+}
+```
+
 ## Field Injection (or Setter Injection)
 
 **In Android, we have certain Android framework classes like activity or fragment which instantiated by the system, so constructor injection is not possible. So we are using <u>Field Injection</u> in which dependencies are instantiated after the class is created.**
 
 **With the use of the Field Injection dependency injection**
+
+```kotlin
+class Car {
+    lateinit var engine: Engine
+    lateinit var steering: Steering
+
+    fun start() {
+        engine.start()
+    }
+}
+
+fun main(args: Array) {
+    val car = Car()
+    car.engine = Engine()
+    car.steering = Steering()
+    car.start()
+}
+```
 
 **We can see this code is much more maintainable and loosely coupled. This is called *dependency injection by hand*, or *manual dependency injection.***
 
@@ -105,3 +154,13 @@ object DownloaderFactory{
 **Dagger just requires us to give the configuration for the required dependency and rest it takes care of using the annotation we have provided by generating the code internally.**
 
 #### Conclusion
+
+**We should use the dependency framework because of the following:**
+
+- **It helps us in managing the complex dependencies easily.**
+- **It makes the unit testing easy by enabling us to pass all the dependencies from outside so that we can easily use the mocked objects.**
+- **It easily manages the scope(lifecycle) of the object.**
+
+**This is why we need to use Dependency Injection Framework like Dagger in Android.**
+
+
