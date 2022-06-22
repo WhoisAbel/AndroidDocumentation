@@ -30,15 +30,11 @@ fun main(args: Array) {
 
 **We have two approaches to solve this issue. In both methods we are trying to make our code loosely coupled. For that, we are removing the dependency of the <u>Engine</u> and <u>Steering</u> class from the <u>Car</u> class. To achieve this, let’s look into the following methods:**
 
-
-
 ## Constructor Injection
 
 **In this, we are passing the dependencies by the <u>constructor</u> so our Car object does not depend upon <u>Engine</u> or <u>Staring</u>.**
 
 **With the use of the <u>Constructor Injection</u> dependency injection**
-
-
 
 ```kotlin
 class Car(private val engine: Engine, private val steering: Steering) {
@@ -94,7 +90,7 @@ fun main(args: Array) {
 
 **Consider an example we have two activities, Activity A and Activity B. Both require an object Downloader, in which Downloader will require the request. Now, the request will depend upon Executor and HTTPClient.**
 
- ![downloader-http-pass](../resources/downloader-http-pass.jpg)
+ ![downloader-http-pass](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/downloader-http-pass.jpg)
 
 **Here, we first create an object of Executor and HttpClient and we pass them to request object like:**
 
@@ -143,7 +139,7 @@ object DownloaderFactory{
 
 #### How can we give our configuration to the framework?
 
-![configuration.png](../resources/config.png)
+![configuration.png](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/config.png)
 
 **Using a framework reduces a lot of code written by us. So, in the generic term, we give configuration to the framework like the way to create the object, scope(lifecycle) of the object so that the framework can create dependencies for us, and then consumers can get the dependencies based on a configuration which we had provided.**
 
@@ -162,5 +158,3 @@ object DownloaderFactory{
 - **It easily manages the scope(lifecycle) of the object.**
 
 **This is why we need to use Dependency Injection Framework like Dagger in Android.**
-
-
