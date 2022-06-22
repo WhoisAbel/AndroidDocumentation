@@ -90,7 +90,7 @@ fun main(args: Array) {
 
 **Consider an example we have two activities, Activity A and Activity B. Both require an object Downloader, in which Downloader will require the request. Now, the request will depend upon Executor and HTTPClient.**
 
-![configuration.png](../../../AndroidDocumentation/resources/downloader-http-pass.jpg)
+![configuration.png](../../DI/downloader-http-pass.jpg)
 
 **Here, we first create an object of Executor and HttpClient and we pass them to request object like:**
 
