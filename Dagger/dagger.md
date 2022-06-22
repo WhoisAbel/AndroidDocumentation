@@ -15,7 +15,7 @@
 
 
 
-1. **Constructor Injection**
+## Constructor Injection
 
 **In this, we are passing the dependencies by the <u>constructor</u> so our Car object does not depend upon <u>Engine</u> or <u>Staring</u>.**
 
@@ -23,7 +23,7 @@
 
 
 
-2. **Field Injection (or Setter Injection)**
+## Field Injection (or Setter Injection)
 
 **In Android, we have certain Android framework classes like activity or fragment which instantiated by the system, so constructor injection is not possible. So we are using <u>Field Injection</u> in which dependencies are instantiated after the class is created.**
 
