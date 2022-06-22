@@ -90,7 +90,7 @@ fun main(args: Array) {
 
 **Consider an example we have two activities, Activity A and Activity B. Both require an object Downloader, in which Downloader will require the request. Now, the request will depend upon Executor and HTTPClient.**
 
- ![downloader-http-pass](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/downloader-http-pass.jpg)
+![configuration.png](../../../AndroidDocumentation/resources/downloader-http-pass.jpg)
 
 **Here, we first create an object of Executor and HttpClient and we pass them to request object like:**
 
@@ -139,7 +139,7 @@ object DownloaderFactory{
 
 #### How can we give our configuration to the framework?
 
-![configuration.png](/home/abolfazl/Documents/GitHub/AndroidDocumentation/resources/config.png)
+![configuration.png](../../../AndroidDocumentation/resources/config.png)
 
 **Using a framework reduces a lot of code written by us. So, in the generic term, we give configuration to the framework like the way to create the object, scope(lifecycle) of the object so that the framework can create dependencies for us, and then consumers can get the dependencies based on a configuration which we had provided.**
 
