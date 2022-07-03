@@ -45,7 +45,8 @@ class Car(private val engine: Engine, private val steering: Steering) {
 
 fun main(args: Array) {
     val engine = Engine()
-    val car = Car(engine)
+    val steering = Steering()
+    val car = Car(engine,steering)
     car.start()
 }
 ```
@@ -100,7 +101,7 @@ val client = HttpClient()
 val request = Request(executor, client)
 ```
 
-Then we pass request in Downloader:**
+**Then we pass request in Downloader:**
 
 ```kotlin
 val downloader = Downloader(request)
