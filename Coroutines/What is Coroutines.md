@@ -154,6 +154,8 @@ It means that coroutine in Kotlin doesn't have its own stack, it doesn't map on 
 
 > What is the difference?
 
+![CoroutinesVsThread.png](../resources/CoroutinesVsThread.png)
+
 Thread - preemptively multitasking. Coroutine - cooperatively multitasking.
 
 Thread - managed by OS (usually). Coroutine - managed by a user.
@@ -183,5 +185,3 @@ fun main(args: Array<String>) {
     }
 }
 ```
-
-
