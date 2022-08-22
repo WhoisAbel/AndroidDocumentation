@@ -1,7 +1,5 @@
 # [Refrence]([Explain coroutines like I&#39;m five - DEV Community](https://dev.to/thibmaek/explain-coroutines-like-im-five-2d9))
 
-
-
 ## Async
 
 I think the term "async" is a bit misleading - the asynchronous thing is the underlying mechanism, and all these async frameworks are trying to give you a synchronous API to it.
@@ -31,15 +29,11 @@ The `for` loop is immediate - all it does is start the IOs(doesn't block) and 
 
 So, this is what async means - you start an IO and instead of waiting for it to finish you go to do other things(like sending more IOs).
 
-
-
 ## Reactors
 
 The problem with the above snippet is that writing code like this tends to get complex - especially when you have different kinds of IOs you need to send, with various dependencies on the results of previous IOs. That's the job of reactors - to hold many tasks, know which task waits on what, and decide which task to run next.
 
 My `pending` container and `while` loop form a super-simplified reactor - real asnyc frameworks will usually have a more complex reactors, that can handle multi-stage tasks and different kinds of IOs - but this is outside the scope of this answer. Another shortcoming of my "reactor" is that it can only deal with one task(with different arguments) - running "process_result" on the result. In reality you'll have different kind of IOs that should be handled differently - which brings us to the next section:
-
-
 
 ## Callback based async
 
@@ -76,8 +70,6 @@ while pending:
 The reactor always receives the callback from `pending`, so it knows how to deal with the different kinds of IOs we register.
 
 This code is easier to manage than directly using the asnyc IO mechanism - but it's still has syntactic overhead compared to synchronous code. To make it look closer to simple synchronous code - we'll need.
-
-
 
 ## Coroutines
 
@@ -146,3 +138,50 @@ async def single_io(io):
 for io in ios:
     reactor.add(single_io(io))
 ```
+
+> **Notice**
+
+So let's start with comparing Kotlin coroutines to other languages coroutines. Basically, you should know that there are two types of Coroutines: **stackless** and **stackful**. Kotlin implements stackless coroutines - it means that coroutine doesn't have its own stack, and that limiting a little bit what coroutine can do.
+
+**Examples:**
+
+- Stackless: C#, Scala, Kotlin
+- Stackful: Quasar, Javaflow
+
+> **What it means that coroutine is like light-weight thread?**
+
+It means that coroutine in Kotlin doesn't have its own stack, it doesn't map on a native thread, it doesn't require context switching on a processor.
+
+> What is the difference?
+
+Thread - preemptively multitasking. Coroutine - cooperatively multitasking.
+
+Thread - managed by OS (usually). Coroutine - managed by a user.
+
+A thread is directly linked to the **native thread** in the corresponding **OS** (operating system) and consumes a considerable amount of resources. In particular, it consumes a lot of memory for its stack. That is why you cannot just create 100k threads. You are likely to run out of memory. Switching between threads involves OS kernel dispatcher and it is a pretty expensive operation in terms of CPU cycles consumed.
+
+A coroutine, on the other hand, is purely a **user-level language abstraction**. It does not tie any native resources and, in the simplest case, uses just one relatively small object in the JVM heap. That is why it is easy to create 100k coroutines. Switching between coroutines does not involve OS kernel at all. It can be as cheap as invoking a regular function.
+
+> Are kotlin's coroutines actually running in parallel / concurrently?
+
+It depends, you can run each coroutine in its own thread, or you can run all coroutines in one thread or some fixed thread pool.
+
+A coroutine can be either running or suspended. A suspended coroutine is not associated to any particular thread, but a running coroutine runs on some thread (using a thread is the only way to execute anything inside an OS process). Whether different coroutines all run on the same thread (a thus may use only a single CPU in a multicore system) or in different threads (and thus may use multiple CPUs) is purely in the hands of a programmer who is using coroutines.
+
+In Kotlin, dispatching of coroutines is controlled via ***coroutine context***.
+
+> Here I'm starting 100000 coroutines, what happens behind this code?
+
+Actually, it depends. But assume that you write the following code:
+
+```kotlin
+fun main(args: Array<String>) {
+    for (i in 0..100000) {
+        async(CommonPool) {
+            delay(1000)
+        }
+    }
+}
+```
+
+
